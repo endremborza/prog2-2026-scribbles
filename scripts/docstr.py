@@ -73,11 +73,15 @@ def run(cls: type, attrs: list[AttrInfo], seed: int | None) -> None:
 
     for i, attr in enumerate(shuffled):
         print(f"\n[{i + 1}/{total}] {attr.name}  ({attr.kind})")
+        print("  n: next  s: signature  d: docstring  q: quit")
         while True:
             ch = get_char()
-            if ch == "d":
+            if ch == "s":
                 if attr.sig_str:
                     print(f"  {attr.name}{attr.sig_str}")
+                else:
+                    print("  (no signature)")
+            elif ch == "d":
                 doc = getattr(getattr(cls, attr.name), "__doc__", None)
                 print(doc or "(no docstring)")
             elif ch == "n":
@@ -94,7 +98,9 @@ def main() -> None:
     parser.add_argument("--polars", action="store_true")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument(
-        "--self-returning", action="store_true", help="Only show methods returning cls"
+        "--all",
+        action="store_true",
+        help="Show all public attributes, not just self-returning methods",
     )
     args = parser.parse_args()
 
@@ -107,9 +113,11 @@ def main() -> None:
     attrs = collect_attrs(cls)
     print_summary(attrs, cls)
 
-    if args.self_returning:
+    if not args.all:
         attrs = [a for a in attrs if a.return_type == cls.__name__]
-        print(f"\nFiltered to {len(attrs)} self-returning methods.")
+        print(
+            f"\nFiltered to {len(attrs)} self-returning methods. (use --all to show everything)"
+        )
 
     run(cls, attrs, args.seed)
 
