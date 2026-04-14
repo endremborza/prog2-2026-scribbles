@@ -15,7 +15,7 @@ class AttrInfo:
     name: str
     kind: str
     sig_str: str | None
-    return_type: str | None
+    return_type: str
 
 
 def _return_type_str(annotation: object) -> str | None:
@@ -39,7 +39,7 @@ def collect_attrs(cls: type) -> list[AttrInfo]:
             ret_type = _return_type_str(sig.return_annotation)
         except (ValueError, TypeError):
             pass
-        attrs.append(AttrInfo(name, kind, sig_str, ret_type))
+        attrs.append(AttrInfo(name, kind, sig_str, ret_type or ""))
     return attrs
 
 
@@ -114,7 +114,9 @@ def main() -> None:
     print_summary(attrs, cls)
 
     if not args.all:
-        attrs = [a for a in attrs if a.return_type == cls.__name__]
+        attrs = [
+            a for a in attrs if cls.__name__ in a.return_type or "Self" in a.return_type
+        ]
         print(
             f"\nFiltered to {len(attrs)} self-returning methods. (use --all to show everything)"
         )
